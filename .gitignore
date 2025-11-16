@@ -1,0 +1,51 @@
+# Python
+.conda
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+.node_modules
+
+# Environment variables
+.env
+
+# Downloads
+/image_crawler/download/*
+download/
+
+# Scrapy
+*.log
+scrapy_log.txt
+dappradar.log
+
+# Data files - JSON
+*.json
+!package.json
+!package-lock.json
+
+# Data files - CSV
+*.csv
+csv_data/
+games_csv_data/
+data/
+
+# Proxy files
+proxyscrape_*.txt
+*_proxies.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Output files
+results/
+output/
