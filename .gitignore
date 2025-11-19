@@ -35,6 +35,22 @@ csv_data/
 games_csv_data/
 data/
 
+# DappRadar data directories
+dappradar/data_*/
+dappradar/csv_data_by_chain/
+
+# DappRadar combined output files
+dappradar/combined_*.csv
+dappradar/defi_tvl_history.csv
+dappradar/web3_ecosystem.csv
+dappradar/chain_history.csv
+
+# DappRadar JSON data files
+dappradar/all_*.json
+
+# Zip archives
+*.zip
+
 # Proxy files
 proxyscrape_*.txt
 *_proxies.txt

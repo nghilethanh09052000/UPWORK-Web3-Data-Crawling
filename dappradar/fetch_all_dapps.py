@@ -3,11 +3,25 @@ import base64
 import json
 import time
 import os
+import sys
+
+# Category mapping
+CATEGORIES = {
+    'games': 1,
+    'defi': 2,
+    'collectibles': 3,
+    'gambling': 4,
+    'other': 5,
+    'high-risk': 6,
+    'marketplaces': 7,
+    'exchanges': 8,
+    'social': 9
+}
 
 # Credentials
-JWT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE3NjMyODY3ODMsImV4cCI6MTc2NTk2NTE4Mywicm9sZXMiOlsiUk9MRV9VU0VSIl0sImVtYWlsIjpudWxsLCJpZCI6ImYyODIxNzEyLWJmNTAtNDJjZC1hZDM4LTc1MWQyNmZmM2I1MCIsInBybyI6dHJ1ZSwiYWRkcmVzcyI6IjB4OWE1NzIxRjE5Njc4NTgyMDBhRjgyRGY4NTJBMmRERkFDY0E5QzJkMiIsInNhbHQiOiIzMmI5MzhjYzJlIn0.ZysMPvKH7k2mIXLD70rc0YVRolOkJHClYlg1C7SZHNADTj0fxgSX-3r9SeL15jpctGyGNO6hw-1UvGB44y1V2bqZXhMksQTnyZdghlAWX_irKNIEOMzCDGX8OUMVcTRxGu3Jt5ddwU4crfyai5IVamEVvjNLjq7lXRXenYVI4dqMQ29AKOxzVr1ixGW4ZJKJTO9asF7Q9eyefso4zyTkVEXS1rgLwM4FpZUxZLZ2XfPz83neY2RumDLAYVCuwpwW9q0QaD-tfT-HMVB0eUGSjbD1Z8f50iAtFUQhZyAMGE9O1yYE4JJ_cIWEza9tNbkeX0GVZY45_Zf8Lj2YIV8EZgH21ya1i35DT0eidbUVnO42gXeQLtKnd8kXLUIQ6fMvSd9JxQ6sxAlTxs77qzXjcR4y3i2iqgqtCz3fPERjgwSvzRbup8BWCY4198n9l5i_fwFYsB6oQ15wdoUFnuBIwxb6INY7sS3D3cwbQTy6eT3I0u37lI-3GeQJO4JGyoi_QFqfZ-hHWA0x1uLrjFm3oNc-ZQVcwWO_K5vSahDMKnFNH5hPwm9b8RpSo8qFl6ehnCHRO2ex6H4X5hpZnP7KKL_CdXBnSqaTrzq_P1DTqg8xXEGJF-XVVj5tfnkBHSdAd69ZcllEs8ZJZzUYSJ-uj3rTAqUcopHf2W5OFryfm_I"
-API_KEY = "Yiqb4I9YRnNIgUG1hnMN7jomkoUSliYob1SRLi2qRTqZsNOjncf"
-COOKIES = 'non_registered_ga_id=5220f9b9-a673-4c44-bb3f-8964f03f0ce6; _ga=GA1.1.1504934669.1763281373; cebs=1; _ce.clock_data=-27%2C27.64.23.48%2C1%2Ca2cb084c96a1ead15308a8f1e203c3be%2CEdge%2CVN; dapp_ga_id=dbdcde9c-6238-4ae7-a54e-fea32c682e3c; jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE3NjMyODY3ODMsImV4cCI6MTc2NTk2NTE4Mywicm9sZXMiOlsiUk9MRV9VU0VSIl0sImVtYWlsIjpudWxsLCJpZCI6ImYyODIxNzEyLWJmNTAtNDJjZC1hZDM4LTc1MWQyNmZmM2I1MCIsInBybyI6dHJ1ZSwiYWRkcmVzcyI6IjB4OWE1NzIxRjE5Njc4NTgyMDBhRjgyRGY4NTJBMmRERkFDY0E5QzJkMiIsInNhbHQiOiIzMmI5MzhjYzJlIn0.ZysMPvKH7k2mIXLD70rc0YVRolOkJHClYlg1C7SZHNADTj0fxgSX-3r9SeL15jpctGyGNO6hw-1UvGB44y1V2bqZXhMksQTnyZdghlAWX_irKNIEOMzCDGX8OUMVcTRxGu3Jt5ddwU4crfyai5IVamEVvjNLjq7lXRXenYVI4dqMQ29AKOxzVr1ixGW4ZJKJTO9asF7Q9eyefso4zyTkVEXS1rgLwM4FpZUxZLZ2XfPz83neY2RumDLAYVCuwpwW9q0QaD-tfT-HMVB0eUGSjbD1Z8f50iAtFUQhZyAMGE9O1yYE4JJ_cIWEza9tNbkeX0GVZY45_Zf8Lj2YIV8EZgH21ya1i35DT0eidbUVnO42gXeQLtKnd8kXLUIQ6fMvSd9JxQ6sxAlTxs77qzXjcR4y3i2iqgqtCz3fPERjgwSvzRbup8BWCY4198n9l5i_fwFYsB6oQ15wdoUFnuBIwxb6INY7sS3D3cwbQTy6eT3I0u37lI-3GeQJO4JGyoi_QFqfZ-hHWA0x1uLrjFm3oNc-ZQVcwWO_K5vSahDMKnFNH5hPwm9b8RpSo8qFl6ehnCHRO2ex6H4X5hpZnP7KKL_CdXBnSqaTrzq_P1DTqg8xXEGJF-XVVj5tfnkBHSdAd69ZcllEs8ZJZzUYSJ-uj3rTAqUcopHf2W5OFryfm_I; cf_clearance=RMbfNLGl7sdtSZXmVAF.amVmE90fsinwRo5NZ5Xt5tE-1763287221-1.2.1.1-JBdCThZszXWhfrgZ8enynGkC93XQ3m0sGG_eCyA.IpOcWj4D6SRh00UaWBjne8tKFqW5WJaeNyFmgyYFXC4pptfb7UAE3KDKdlHLTJ1PiuEwKW38FHcTDR_QAaU_1V_FnC1xPEumuigvTbx0sjgdkOpm.aV7UUDkB7PCwIchpYAKD8eRJudZ68y84yzm3vLsH.rq_IzkkqqDLp_P3s0bX2h4zF4CbXjiUkvmGLqUS.GRAAkSXjNrr7xT42VmgoqZ; cebsp_=32; __cf_bm=fFGgsUoD51akTGGf1ysDYqqXA.a1DWC0mywLqgb5Hkg-1763287841-1.0.1.1-mz6zQjF5ZnAqTyBdnUfjjVoRfTa0E8ibg8l9ggIvLUgGQXMLWgGfcxarn5_q8O9MSdugQMPpAozhBSmfI28RdAqMd567x842WPfarNb5fjQ; _ce.s=v~66d5ea95637e1f1663b6f30f127b5a3c240389ab~lcw~1763287999667~vir~returning~lva~1763287637699~vpv~0~v11ls~d2affb60-c2d0-11f0-a3b3-8d3a594e02a9~gtrk.la~mi1k5eai~v11.cs~448387~v11.s~d2affb60-c2d0-11f0-a3b3-8d3a594e02a9~v11.vs~66d5ea95637e1f1663b6f30f127b5a3c240389ab~v11.fsvd~eyJ1cmwiOiJkYXBwcmFkYXIuY29tL2FjY291bnQvcHJvLW1lbWJlcnNoaXAiLCJyZWYiOiJodHRwczovL2RhcHByYWRhci5jb20vYWNjb3VudC9wcm8tbWVtYmVyc2hpcCIsInV0bSI6W119~v11.sla~1763286259224~v11.ws~1~v11.wr~2~v11.ss~1763286259227~vdva~1763337599999~v11nv~0~v11e~1~lcw~1763288002459; _ga_BTQFKMW6P9=GS2.1.s1763281372$o1$g1$t1763288002$j54$l0$h0; dr_session={"sessionId":"f7e26c40-7596-4136-bc55-8cdf845da09c","sessionNumber":1,"landingPage":"/","campaignSource":"{\"source\":null,\"medium\":null,\"campaign\":null}","lastActivity":1763288002940}'
+JWT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE3NjMyOTA3MTIsImV4cCI6MTc2NTk2OTExMiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImVtYWlsIjpudWxsLCJpZCI6ImYyODIxNzEyLWJmNTAtNDJjZC1hZDM4LTc1MWQyNmZmM2I1MCIsInBybyI6dHJ1ZSwiYWRkcmVzcyI6IjB4OWE1NzIxRjE5Njc4NTgyMDBhRjgyRGY4NTJBMmRERkFDY0E5QzJkMiIsInNhbHQiOiJlY2NlOTUyYWU2In0.df0LFpe7ximbOYT7XfQhZ6DVaRkSYwT8VfmhIVy6U9MnYsDpooaF-OozWe5vl7mN-hNiTpugU2HRIVdTSvw-QJG_tBBW75w9n8at9iMhLiN2cuEUM_uKgyH8RF6cLaib5cBKxijTmG4DwzTurr-0R0SV7he1R8l_njnQ3tBnTQFVfZ2UqquV9NPMpAxg87fIWykOjm9zjTx7jnmowIWEoBVs9iQW3urhTE1uM1t2x6u0aabsu4p182nM5lU9jCa2sjzRH2h0SPwZ1m6OQTNPAPKbOb_5H5JXr8H8c5sf8sHmPOaJrQlnkCJCY4KPw9U8nrg7tz_ins76Y50BT6-PAnMWFJPxgx-OcMp3tNZ1OkiVJ_QeDKk1YaYGUWzRdQK0suMPWmPaJQmrlXp1vCf1PxKRWd-DXgICCNZWmGd33x-2v_PlBxRj53rNrP2nKDr7z6LdQZvi2PaSOVChPUkoEyco46MmqvW5AKCfDDfJjN3LausfQd6jZNgCFPB-_jKKMVimts4rk7nGumnT-8JB9TtQ8cmaWuMNNfBYQlIGeZgmPIKXv6fin3mHpvxXcU8c_gl11eRS1UVQCpPQB7buLdQ4muEFZCwgYyvAwunx2755UplZmCPnM6UhkZipW5FiosJ23eOYd4AUEUliysJwPFtAh_OacHsxSwmd2rCfBSE"
+API_KEY = "HKk3NW7pkfPZpne0ZIR539NpOYSSMGMn5hMm70nqH3e44gMKKe9b"
+COOKIES = 'non_registered_ga_id=5220f9b9-a673-4c44-bb3f-8964f03f0ce6; _ga=GA1.1.1504934669.1763281373; cebs=1; jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE3NjMyOTA3MTIsImV4cCI6MTc2NTk2OTExMiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImVtYWlsIjpudWxsLCJpZCI6ImYyODIxNzEyLWJmNTAtNDJjZC1hZDM4LTc1MWQyNmZmM2I1MCIsInBybyI6dHJ1ZSwiYWRkcmVzcyI6IjB4OWE1NzIxRjE5Njc4NTgyMDBhRjgyRGY4NTJBMmRERkFDY0E5QzJkMiIsInNhbHQiOiJlY2NlOTUyYWU2In0.df0LFpe7ximbOYT7XfQhZ6DVaRkSYwT8VfmhIVy6U9MnYsDpooaF-OozWe5vl7mN-hNiTpugU2HRIVdTSvw-QJG_tBBW75w9n8at9iMhLiN2cuEUM_uKgyH8RF6cLaib5cBKxijTmG4DwzTurr-0R0SV7he1R8l_njnQ3tBnTQFVfZ2UqquV9NPMpAxg87fIWykOjm9zjTx7jnmowIWEoBVs9iQW3urhTE1uM1t2x6u0aabsu4p182nM5lU9jCa2sjzRH2h0SPwZ1m6OQTNPAPKbOb_5H5JXr8H8c5sf8sHmPOaJrQlnkCJCY4KPw9U8nrg7tz_ins76Y50BT6-PAnMWFJPxgx-OcMp3tNZ1OkiVJ_QeDKk1YaYGUWzRdQK0suMPWmPaJQmrlXp1vCf1PxKRWd-DXgICCNZWmGd33x-2v_PlBxRj53rNrP2nKDr7z6LdQZvi2PaSOVChPUkoEyco46MmqvW5AKCfDDfJjN3LausfQd6jZNgCFPB-_jKKMVimts4rk7nGumnT-8JB9TtQ8cmaWuMNNfBYQlIGeZgmPIKXv6fin3mHpvxXcU8c_gl11eRS1UVQCpPQB7buLdQ4muEFZCwgYyvAwunx2755UplZmCPnM6UhkZipW5FiosJ23eOYd4AUEUliysJwPFtAh_OacHsxSwmd2rCfBSE; dapp_ga_id=dbdcde9c-6238-4ae7-a54e-fea32c682e3c; cf_clearance=64bupobfMNqcvi5_7wRlSZlkl80_y08a.KYJWpMtQzc-1763367383-1.2.1.1-ukeFJRvghJ4KekF0A5cwgsD_eHBMEBgvIQmfmSmpxA0v3kiXK4QaaYv59gb3rj27hyw3_ddkCw.a7Ixe_XTqX9c.sT4Vn26IZwwVNbVK1k8qwtqVs8DexclKK2dGueKFMlSfFe38Qc8.LeGTz8MzQSFxtPILTAwAjsk6QFFQezugnOpp2yrmYdGPizi9BEd1CQspw1feyDxdEfQuOY0Q9ZJ86JWeuWDcaFynK6YlqlBKF_mc0YS9aSI2KKhY9xV7; __cf_bm=J3U16iLNwLze3IzA4pl6.S_osmavg4_8dRqxEx1VPLc-1763369868-1.0.1.1-jGfrU91cv75wt9lhATB.E4WRSS08rHwQIQrm0vGjHhhvnNhmjpGoAMZjssl_i78AvRQ7EQo9.TiE81ISBYtVfRZv626tGUEn7jI7yfsxHJk; cebsp_=121; _ce.s=v~66d5ea95637e1f1663b6f30f127b5a3c240389ab~lcw~1763370182655~vir~returning~lva~1763367385044~vpv~0~v11ls~e9d976f0-c392-11f0-a7d8-9578943f5fd5~vdva~1763423999999~gtrk.la~mi2x2t5j~v11.cs~448387~v11.s~e9d976f0-c392-11f0-a7d8-9578943f5fd5~v11.vs~66d5ea95637e1f1663b6f30f127b5a3c240389ab~v11.fsvd~eyJ1cmwiOiJkYXBwcmFkYXIuY29tL3JhbmtpbmdzIiwicmVmIjoiIiwidXRtIjpbXX0%3D~v11.sla~1763369620448~v11.ws~1~v11.wr~4~v11.ss~1763369620450~v11e~1~v11nv~0~lcw~1763370182935; _ga_BTQFKMW6P9=GS2.1.s1763365755$o3$g1$t1763370183$j19$l0$h0; dr_session={"sessionId":"b0b2adc6-1898-4452-b057-675d665b7c23","sessionNumber":3,"landingPage":"/rankings/category/games","campaignSource":"{\"source\":null,\"medium\":null,\"campaign\":null}","lastActivity":1763370183244}'
 
 url = "https://dapps-rankings.dappradar.com/api/v1.0/rankings/dapps"
 
@@ -19,8 +33,8 @@ headers = {
     "Cookie": COOKIES
 }
 
-def encode_params(page_num):
-    """Encode parameters for page"""
+def encode_params(page_num, category_id):
+    """Encode parameters for page and category"""
     params_dict = {
         'DappRadarcurrency': 'USD',
         'sort': 'uawCount',
@@ -28,7 +42,7 @@ def encode_params(page_num):
         'range': '24h',
         'resultsPerPage': 50,
         'page': page_num,
-        'categoryId[]': 1,
+        'categoryId[]': category_id,
         'excludedDappId': 40013
     }
     
@@ -37,81 +51,110 @@ def encode_params(page_num):
     encoded_twice = base64.b64encode(encoded_once.encode()).decode()
     return encoded_twice
 
-output_file = "all_dapps.json"
-
-# Initialize or load existing data
-if os.path.exists(output_file):
-    with open(output_file, 'r') as f:
-        all_dapps = json.load(f)
-    print(f"Found existing file with {len(all_dapps)} dapps")
-else:
-    all_dapps = []
-    print("Starting fresh")
-
-print("Fetching dapps from pages 1-73...")
-print("="*60)
-
-total_new = 0
-
-for page in range(1, 74):
-    encoded_params = encode_params(page)
+def fetch_category(category_name):
+    """Fetch all dapps for a category"""
     
-    params = {
-        "params": encoded_params
-    }
+    # Get category ID
+    if category_name not in CATEGORIES:
+        print(f"Error: Unknown category '{category_name}'")
+        print(f"Available categories: {', '.join(CATEGORIES.keys())}")
+        return
     
-    try:
-        response = requests.get(url, headers=headers, params=params)
+    category_id = CATEGORIES[category_name]
+    
+    # Create category folder
+    category_folder = f"data_{category_name}"
+    if not os.path.exists(category_folder):
+        os.makedirs(category_folder)
+    
+    output_file = f"{category_folder}/all_dapps.json"
+    
+    # Load existing data if available
+    if os.path.exists(output_file):
+        with open(output_file, 'r') as f:
+            all_dapps = json.load(f)
+        print(f"Found existing file with {len(all_dapps)} dapps")
+    else:
+        all_dapps = []
+        print("Starting fresh")
+    
+    print(f"Fetching category: {category_name} (ID: {category_id})")
+    print("="*60)
+    
+    page = 1
+    total_new = 0
+    
+    while True:
+        encoded_params = encode_params(page, category_id)
         
-        if response.status_code == 200:
-            data = response.json()
-            dapps = data.get('results', [])
+        params = {
+            "params": encoded_params
+        }
+        
+        try:
+            response = requests.get(url, headers=headers, params=params)
             
-            print(f"Page {page}: Found {len(dapps)} dapps")
-            
-            page_dapps = []
-            for dapp in dapps:
-                stats = dapp.get('statistic', {})
+            if response.status_code == 200:
+                data = response.json()
+                dapps = data.get('results', [])
                 
-                dapp_data = {
-                    'page': page,
-                    'id': dapp.get('id'),
-                    'name': dapp.get('name'),
-                    'slug': dapp.get('slug'),
-                    'logo': dapp.get('logo'),
-                    'deeplink': dapp.get('deeplink'),
-                    'categoryId': dapp.get('categoryId'),
-                    'chainIds': dapp.get('chainIds'),
-                    'activeChainIds': dapp.get('activeChainIds'),
-                    'totalBalanceInFiat': stats.get('totalBalanceInFiat'),
-                    'totalVolumeInFiat': stats.get('totalVolumeInFiat'),
-                    'transactionCount': stats.get('transactionCount'),
-                    'uawCount': stats.get('uawCount'),
-                }
+                # Stop if no results
+                if not dapps:
+                    print(f"Page {page}: No more results. Stopping.")
+                    break
                 
-                page_dapps.append(dapp_data)
+                print(f"Page {page}: Found {len(dapps)} dapps")
+                
+                page_dapps = []
+                for dapp in dapps:
+                    stats = dapp.get('statistic', {})
+                    
+                    dapp_data = {
+                        'page': page,
+                        'category': category_name,
+                        'id': dapp.get('id'),
+                        'name': dapp.get('name'),
+                        'slug': dapp.get('slug'),
+                        'logo': dapp.get('logo'),
+                        'deeplink': dapp.get('deeplink'),
+                        'categoryId': dapp.get('categoryId'),
+                        'chainIds': dapp.get('chainIds'),
+                        'activeChainIds': dapp.get('activeChainIds'),
+                        'totalBalanceInFiat': stats.get('totalBalanceInFiat'),
+                        'totalVolumeInFiat': stats.get('totalVolumeInFiat'),
+                        'transactionCount': stats.get('transactionCount'),
+                        'uawCount': stats.get('uawCount'),
+                    }
+                    
+                    page_dapps.append(dapp_data)
+                
+                # Append and save
+                all_dapps.extend(page_dapps)
+                total_new += len(page_dapps)
+                
+                with open(output_file, 'w') as f:
+                    json.dump(all_dapps, f, indent=2)
+                
+                print(f"  → Saved to {output_file} (Total: {len(all_dapps)} dapps)")
+                
+                page += 1
+                time.sleep(0.5)
+                
+            else:
+                print(f"Page {page}: Error {response.status_code}")
+                break
             
-            # Append to main list and save immediately
-            all_dapps.extend(page_dapps)
-            total_new += len(page_dapps)
-            
-            with open(output_file, 'w') as f:
-                json.dump(all_dapps, f, indent=2)
-            
-            print(f"  → Saved to {output_file} (Total: {len(all_dapps)} dapps)")
-            
-        else:
-            print(f"Page {page}: Error {response.status_code}")
+        except Exception as e:
+            print(f"Page {page}: Exception - {e}")
             break
-        
-        # Sleep to avoid rate limiting
-        time.sleep(0.5)
-        
-    except Exception as e:
-        print(f"Page {page}: Exception - {e}")
-        break
+    
+    print("="*60)
+    print(f"✅ Done! Category: {category_name}")
+    print(f"   Total: {len(all_dapps)} dapps in {output_file}")
+    print(f"   New: {total_new} dapps added this run")
 
-print("="*60)
-print(f"✅ Done! Total {len(all_dapps)} dapps in {output_file}")
-print(f"   ({total_new} new dapps added this run)")
-
+if __name__ == "__main__":
+    # Get category from command line argument (default: games)
+    category = sys.argv[1] if len(sys.argv) > 1 else 'games'
+    
+    fetch_category(category)
