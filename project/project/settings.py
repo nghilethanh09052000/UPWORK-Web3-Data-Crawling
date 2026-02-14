@@ -17,15 +17,15 @@ NEWSPIDER_MODULE = "project.spiders"
 #USER_AGENT = "project (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 7
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#DOWNLOAD_DELAY = 0.5
+DOWNLOAD_DELAY = 0.5
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -51,7 +51,7 @@ ROBOTSTXT_OBEY = True
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    #'project.middlewares.CustomProxyMiddleware': 100,
+    'project.middlewares.CustomProxyMiddleware': 100,
    "project.middlewares.ProjectDownloaderMiddleware": 543,
   
 }
@@ -64,9 +64,9 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "project.pipelines.ProjectPipeline": 300,
-#}
+ITEM_PIPELINES = {
+    "project.pipelines.JsonWriterPipeline": 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -96,9 +96,9 @@ FEED_EXPORT_ENCODING = "utf-8"
 
 # Logging settings
 LOG_ENABLED = True
-LOG_LEVEL = 'INFO'  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOG_FILE = 'scrapy_log.txt'  # File to save logs (comment out to show in console only)
-LOG_ENCODING = 'utf-8'
-LOG_STDOUT = False  # Set to True to also log stdout to the log file
-LOG_FORMAT = '%(asctime)s [%(name)s] %(levelname)s: %(message)s'
-LOG_DATEFORMAT = '%Y-%m-%d %H:%M:%S'
+#LOG_LEVEL = 'INFO'  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+# LOG_FILE = 'scrapy_log.txt'  # File to save logs (comment out to show in console only)
+# LOG_ENCODING = 'utf-8'
+# LOG_STDOUT = False  # Set to True to also log stdout to the log file
+# LOG_FORMAT = '%(asctime)s [%(name)s] %(levelname)s: %(message)s'
+# LOG_DATEFORMAT = '%Y-%m-%d %H:%M:%S'

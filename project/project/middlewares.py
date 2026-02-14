@@ -142,12 +142,39 @@ class CustomProxyMiddleware(object):
             request.meta["proxy"] = proxy
 
     def load_proxies(self):
-        # Load the proxies from the .txt file
-        with open("proxyscrape_premium_http_proxies.txt", "r") as file:
-            return [line.strip() for line in file if line.strip()]
+        # Load proxies from CSV file (proxies.csv)
+        import csv
+        import os
+        
+        # Try proxies.csv first, fallback to txt file
+        csv_file = "proxies.csv"
+        txt_file = "proxyscrape_premium_http_proxies.txt"
+        
+        if os.path.exists(csv_file):
+            proxies = []
+            with open(csv_file, "r", encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    proxy = row.get('Proxy', '').strip()
+                    status = row.get('Status', '').strip()
+                    # Only load working proxies
+                    if proxy and status == 'Working':
+                        proxies.append(proxy)
+            print(f"Loaded {len(proxies)} working proxies from {csv_file}")
+            return proxies
+        elif os.path.exists(txt_file):
+            with open(txt_file, "r") as file:
+                proxies = [line.strip() for line in file if line.strip()]
+            print(f"Loaded {len(proxies)} proxies from {txt_file}")
+            return proxies
+        else:
+            print("Warning: No proxy file found")
+            return []
 
     def get_proxy(self):
         # Randomly pick a proxy from the list and ensure it has the correct scheme
+        if not self.proxy_list:
+            return None
         proxy = random.choice(self.proxy_list)
         if not proxy.startswith("http://") and not proxy.startswith("https://"):
             proxy = "http://" + proxy  # Append the "http://" scheme if missing

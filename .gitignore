@@ -44,9 +44,15 @@ dappradar/combined_*.csv
 dappradar/defi_tvl_history.csv
 dappradar/web3_ecosystem.csv
 dappradar/chain_history.csv
+dappradar/defillama_tvl.csv
 
 # DappRadar JSON data files
 dappradar/all_*.json
+
+# DeFi Llama data files
+project/protocols_list.json
+project/defillama_tvl.csv
+project/defillama_tvl.json
 
 # Zip archives
 *.zip
